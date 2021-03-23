@@ -1,65 +1,94 @@
-import React, {Component} from 'react';
-import TOC from "./TOC";
-import Content from "./Content";
-import Subject from "./Subject";
-import './App.css'
+import React, { Component } from 'react';
+import {BrowserRouter, Route} from "react-router-dom";
+import {Switch, withRouter} from  "react-router";
+import moment from 'moment';
+import styled from 'styled-components';
+import './style/Calendar.css';  //부모과 자식이 같은 css 이용할 때에는 부모에만 import
+import Header from "./Header";
+import Calendar from './Calendar';
+import Schedule from './Schedule';
+import InputForm from './InputForm';
+import Button from './Button';
+
+
 
 class App extends Component {
-  constructor(props){
-    super(props);
-    this.state = {
-      mode:'read',
-      selected_content_id:2,
-      subject:{title:'WEB', sub:'World Wide Web!'},
-      welcome:{title:'Welcome', desc:'Hello, React!!'},
-      contents:[
-        {id:1, title:'HTML', desc:'HTML is for information'},
-        {id:2, title:'CSS', desc:'CSS is for design'},
-        {id:3, title:'JavaScript', desc:'java java'}
-      ]
-    }
-  }
-
-  render(){
-    var _title, _desc = null;
-    if(this.state.mode ===  'welcome'){
-      _title = this.state.welcome.title;
-      _desc = this.state.welcome.desc;      //welcome보내줌
-    } else if(this.state.mode === 'read'){
-      var i = 0;
-      while(i < this.state.contents.length){
-        var data = this.state.contents[i];
-        if(data.id === this.state.selected_content_id) {
-          _title = data.title;
-          _desc = data.desc;
-          break;
+    constructor(props){
+        super(props);
+   
+        this.state = {
+            calendarYM: moment(),
+            today: moment(),
+            }
+    
         }
-        i = i + 1;
-      }
+        moveMonth = (month) => {
+            this.setState({
+                calendarYM: this.state.calendarYM.add(month,'M')
+            })
+        }
+        
+
+    render() {
+        return (
+            <div>
+                
+                    <Switch>
+                        <Route path="/" 
+                            exact render={(props) => (
+                            <div className="layout">
+                            <CalendarContainer>
+                                <Header 
+                                    calendarYM={this.state.calendarYM.format("YYYY년 MM월")}
+                                    today={this.state.today.format("오늘은 YYYY/MM/DD")}
+                                    moveMonth={this.moveMonth}
+                                />
+                                <Calendar YM={this.state.calendarYM.format("YYYY-MM-DD")}/>
+                            </CalendarContainer>
+                            <Container>
+                                <Title>일정</Title>
+                                <Line/>
+                                <Schedule /> 
+                            </Container>
+                            <Button history={this.props.history}/>
+                            </div>)} />
+                        <Route path="/input" component={InputForm} /> 
+                    </Switch>
+            </div>
+        )
     }
-    return (
-      <div className="App">
-        <Subject 
-          title={this.state.subject.title}
-          sub={this.state.subject.sub}
-          onChangePage={function(){
-            console.log('event in')
-            this.setState({mode:'welcome'});
-          }.bind(this)}
-          >
-          </Subject>
-        <TOC onChangePage={function(id){
-          this.setState({
-            mode:'read',
-            selected_content_id:Number(id)
-          });
-        }.bind(this)} 
-        data={this.state.contents}>
-        </TOC>  //TOC에는 this.props.data로 들어가 있음
-        <Content title={_title} desc={_desc}></Content>
-      </div>
-    );
-  }
 }
 
-export default App;
+
+const CalendarContainer =styled.div`
+max-width: 800px;
+flex-grow: 1;
+justify-items: stretch;
+padding: 16px;
+margin: 20px auto;
+border-radius: 5px;
+border: 1px solid #ddd;
+`;
+
+const Container = styled.div`
+    width: 400px;
+    justify-items: stretch; 
+  min-height: 60vh;
+  background-color: #fff;
+  padding: 16px;
+  margin: 20px auto;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+`;
+
+const Title = styled.h1`
+  color: #3f51b5;
+  text-align: center;
+`;
+
+const Line = styled.hr`
+  margin: 16px 0px;
+  border: 1px dotted #ddd;
+`;
+
+export default withRouter(App);
