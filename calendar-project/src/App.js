@@ -6,29 +6,42 @@ import styled from 'styled-components';
 import './style/Calendar.css';  //부모과 자식이 같은 css 이용할 때에는 부모에만 import
 import Header from "./Header";
 import Calendar from './Calendar';
-import Schedule from './Schedule';
 import InputForm from './InputForm';
 import Button from './Button';
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import {useDispatch, useSelector} from 'react-redux';
+import {connect} from 'react-redux';
+import { firestore } from './firebase';
+import {loadSchedule, createSchedule, loadScheduleFB} from './redux/modules/schedule';
 
+const ScheduleList = (props) => {
+    // 버킷리스트를 리덕스 훅으로 가져오기
+    const schedule_list = useSelector((state) => state.schedule.schedule);
+    console.log(schedule_list);
 
+    return(
+        <div>
+     <FullCalendar
+        plugins={[ dayGridPlugin ]}
+        initialView="dayGridMonth"
+        weekends={true}
+        events= {schedule_list}
+        />
+        </div>   
+    )
+};
 
 class App extends Component {
     constructor(props){
         super(props);
-   
-        this.state = {
-            calendarYM: moment(),
-            today: moment(),
-            }
     
-        }
-        moveMonth = (month) => {
-            this.setState({
-                calendarYM: this.state.calendarYM.add(month,'M')
-            })
-        }
         
-
+    }
+    componentDidMount(){
+            const plan = firestore.collection("calendar");
+            console.log(plan)
+        }
     render() {
         return (
             <div>
@@ -36,38 +49,24 @@ class App extends Component {
                     <Switch>
                         <Route path="/" 
                             exact render={(props) => (
-                            <div className="layout">
-                            <CalendarContainer>
-                                <Header 
-                                    calendarYM={this.state.calendarYM.format("YYYY년 MM월")}
-                                    today={this.state.today.format("오늘은 YYYY/MM/DD")}
-                                    moveMonth={this.moveMonth}
-                                />
-                                <Calendar YM={this.state.calendarYM.format("YYYY-MM-DD")}/>
-                            </CalendarContainer>
-                            <Container>
-                                <Title>일정</Title>
-                                <Line/>
-                                <Schedule /> 
-                            </Container>
-                            <Button history={this.props.history}/>
-                            </div>)} />
-                        <Route path="/input" component={InputForm} /> 
+                            <div >
+                                <Button history={this.props.history}/>
+                                <ScheduleList/>
+                            </div>
+                            )} />
+                        <Route path="/input" 
+                            component={InputForm}
+                            /> 
                     </Switch>
             </div>
         )
     }
 }
 
-
-const CalendarContainer =styled.div`
-max-width: 800px;
-flex-grow: 1;
-justify-items: stretch;
-padding: 16px;
-margin: 20px auto;
-border-radius: 5px;
-border: 1px solid #ddd;
+const CalendarLayout = styled.div`
+    width:80%;
+    height:100vw;
+    margin:0 auto;
 `;
 
 const Container = styled.div`
@@ -90,5 +89,20 @@ const Line = styled.hr`
   margin: 16px 0px;
   border: 1px dotted #ddd;
 `;
+
+const ListStyle = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+`;
+
+const ItemStyle = styled.div`
+  padding: 16px;
+  margin: 8px;
+  background-color: aliceblue;
+`;
+
 
 export default withRouter(App);
